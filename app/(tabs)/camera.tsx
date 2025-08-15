@@ -8,7 +8,7 @@ import * as FileSystem from 'expo-file-system';
 //    在專案根目錄建立 .env，寫入：EXPO_PUBLIC_GOOGLE_AI_API_KEY=你的金鑰
 //    之後以 process.env.EXPO_PUBLIC_GOOGLE_AI_API_KEY 取得（不需安裝 react-native-dotenv）
 
-export default function CameraScreen() {
+export default function camera() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
