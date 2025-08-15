@@ -4,11 +4,13 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Device from 'expo-device';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
+import { router } from 'expo-router';
+import { useCalorieStore } from '../store/caloriesStore';
 // ✅ 改用 Expo 公開環境變數，避免 @env 類型錯誤
 //    在專案根目錄建立 .env，寫入：EXPO_PUBLIC_GOOGLE_AI_API_KEY=你的金鑰
 //    之後以 process.env.EXPO_PUBLIC_GOOGLE_AI_API_KEY 取得（不需安裝 react-native-dotenv）
 
-export default function camera() {
+export default function Camera() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -45,12 +47,7 @@ export default function camera() {
   const pickFromLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
-        'AI 結果',
-        parsed.items
-          .map((it: any) => `${it.name} ≈ ${Math.round(it.kcal)} kcal`)
-          .join('/n')
-      );
+      Alert.alert('需要相簿權限', '請到設定允許存取相簿');
       return;
     }
     const r = await ImagePicker.launchImageLibraryAsync({ quality: 0.8 });
@@ -63,7 +60,6 @@ export default function camera() {
     if (!imageUri) return;
     try {
       setSubmitting(true);
-      // 直接使用靜態 import 的 FileSystem（避免 dynamic import 造成 undefined）
       const base64 = await FileSystem.readAsStringAsync(imageUri, { encoding: 'base64' });
 
       const API_KEY = process.env.EXPO_PUBLIC_GOOGLE_AI_API_KEY;
@@ -95,12 +91,22 @@ export default function camera() {
       let parsed: any = {};
       try { parsed = JSON.parse(text); } catch { throw new Error('模型回覆非 JSON：' + text?.slice(0,120)); }
 
+      // 將 AI 結果寫入全域的卡路里 store，然後跳到 Calories 分頁
+      const entries = (parsed.items || []).map((it: any) => ({
+        id: Math.random().toString(36).slice(2),
+        name: String(it.name ?? 'Unknown'),
+        kcal: Math.round(Number(it.kcal) || 0),
+        qty_g: typeof it.qty_g === 'number' ? Math.round(it.qty_g) : undefined,
+        source: 'ai' as const,
+        createdAt: Date.now(),
+      }));
+      useCalorieStore.getState().addEntries(entries);
+
       Alert.alert(
-        'AI 結果',
-        parsed.items
-          .map((it: any) => `${it.name} ≈ ${Math.round(it.kcal)} kcal`)
-          .join('/n')
+        '已加入紀錄',
+        entries.map((e: any) => `${e.name} +${e.kcal} kcal`).join('\n')
       );
+      router.push('/(tabs)/calories');
     } catch (e: any) {
       Alert.alert('送出失敗', e?.message ?? 'unknown');
     } finally {

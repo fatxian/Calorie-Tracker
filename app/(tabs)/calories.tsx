@@ -1,16 +1,23 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Button, FlatList } from 'react-native';
+import { useCalorieStore } from '../store/caloriesStore'; // ← 路徑依你的檔案層級調整
 
-type Entry = { id: string; name: string; kcal: number };
+export default function Calories() {
+  const items = useCalorieStore((s) => s.items);
+  const addEntry = useCalorieStore((s) => s.addEntry);
 
-export default function CaloriesScreen() {
-  const [items, setItems] = useState<Entry[]>([]);
   const [name, setName] = useState('');
   const [kcal, setKcal] = useState('');
 
   const add = () => {
     if (!name || !kcal) return;
-    setItems(prev => [{ id: Math.random().toString(36).slice(2), name, kcal: +kcal }, ...prev]);
+    addEntry({
+      id: Math.random().toString(36).slice(2),
+      name,
+      kcal: +kcal,
+      source: 'manual',
+      createdAt: Date.now(),
+    });
     setName(''); setKcal('');
   };
 
@@ -27,10 +34,11 @@ export default function CaloriesScreen() {
       <FlatList
         style={{ marginTop:16 }}
         data={items}
-        keyExtractor={it => it.id}
+        keyExtractor={(it) => it.id}
         renderItem={({ item }) => (
           <View style={{ flexDirection:'row', justifyContent:'space-between', paddingVertical:8 }}>
-            <Text>{item.name}</Text><Text>{item.kcal} kcal</Text>
+            <Text>{item.name}{item.qty_g ? ` (${item.qty_g}g)` : ''}</Text>
+            <Text>{item.kcal} kcal</Text>
           </View>
         )}
       />
