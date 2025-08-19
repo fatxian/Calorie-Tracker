@@ -68,7 +68,20 @@ export default function Camera() {
       }
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
-      const prompt = `你是營養助理。辨識餐點，估計每一項的熱量(kcal)與可用的份量(克)，若不確定請給合理估計與信心度。只輸出 JSON：{"items":[{"name":"","kcal":0,"qty_g":0,"confidence":0.0}]}`;
+      //const prompt = `你是營養助理。辨識餐點，估計每一項的熱量(kcal)與可用的份量(克)，若不確定請給合理估計與信心度。只輸出 JSON：{"items":[{"name":"","kcal":0,"qty_g":0,"confidence":0.0}]}`;
+
+      const prompt = `你是一個營養助理。請根據圖片辨識餐點，並為每個餐點提供：
+                    1. 名稱 (name)
+                    2. 總熱量 (kcal)
+                    3. 推測份量 (qty_g，以克為單位)
+                    不要拆分成分，不要回傳額外的總和，只要每道餐點各自的總熱量與份量。
+                    輸出格式必須為 JSON，範例如下：
+                    {
+                        \"items\": [
+                            { \"name\": \"牛肉麵\", \"kcal\": 600, \"qty_g\": 500 },
+                            { \"name\": \"可樂\", \"kcal\": 150, \"qty_g\": 330 }
+                        ]
+                    }`;
 
       const resp = await fetch(url, {
         method: 'POST',
