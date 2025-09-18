@@ -3,7 +3,7 @@ import { View, Text, Button, Image, StyleSheet, Platform, Alert } from 'react-na
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Device from 'expo-device';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { router } from 'expo-router';
 import { useCalorieStore } from '../store/caloriesStore';
 // ✅ 改用 Expo 公開環境變數，避免 @env 類型錯誤
@@ -70,16 +70,16 @@ export default function Camera() {
 
       //const prompt = `你是營養助理。辨識餐點，估計每一項的熱量(kcal)與可用的份量(克)，若不確定請給合理估計與信心度。只輸出 JSON：{"items":[{"name":"","kcal":0,"qty_g":0,"confidence":0.0}]}`;
 
-      const prompt = `你是一個營養助理。請根據圖片辨識餐點，並為每個餐點提供：
-                    1. 名稱 (name)
-                    2. 總熱量 (kcal)
-                    3. 推測份量 (qty_g，以克為單位)
-                    不要拆分成分，不要回傳額外的總和，只要每道餐點各自的總熱量與份量。
-                    輸出格式必須為 JSON，範例如下：
+      const prompt = `You are a nutrition assistant. Based on the provided image, identify each distinct dish or beverage and provide:
+                    1. name (in English)
+                    2. total calories (kcal)
+                    3. estimated portion size (qty_g, in grams)
+                    Do not break down ingredients, and do not add any extra overall totals. Only list each item with its own total calories and portion size.
+                    The output must be strictly in JSON, for example:
                     {
                         \"items\": [
-                            { \"name\": \"牛肉麵\", \"kcal\": 600, \"qty_g\": 500 },
-                            { \"name\": \"可樂\", \"kcal\": 150, \"qty_g\": 330 }
+                            { \"name\": \"Beef noodles\", \"kcal\": 600, \"qty_g\": 500 },
+                            { \"name\": \"Coca-Cola\", \"kcal\": 150, \"qty_g\": 330 }
                         ]
                     }`;
 
@@ -116,7 +116,7 @@ export default function Camera() {
       useCalorieStore.getState().addEntries(entries);
 
       Alert.alert(
-        '已加入紀錄',
+        'Added',
         entries.map((e: any) => `${e.name} +${e.kcal} kcal`).join('\n')
       );
       router.push('/(tabs)/calories');

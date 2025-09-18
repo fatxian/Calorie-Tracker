@@ -134,19 +134,19 @@ export default function Calories() {
       </Text>
 
       <TextInput
-        placeholder="食物名稱"
+        placeholder="Name"
         value={name}
         onChangeText={setName}
         style={{ borderWidth:1, padding:8, borderRadius:8 }}
       />
       <TextInput
-        placeholder="熱量 (kcal)"
+        placeholder="kcal"
         value={kcal}
         onChangeText={setKcal}
         keyboardType={Platform.select({ ios: 'numbers-and-punctuation', android: 'numeric' })}
         style={{ borderWidth:1, padding:8, borderRadius:8 }}
       />
-      <Button title="新增" onPress={add} />
+      <Button title="Add" onPress={add} />
 
       <FlatList
         style={{ marginTop:16 }}
