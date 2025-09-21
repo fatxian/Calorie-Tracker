@@ -17,22 +17,19 @@ export default function Calories() {
 
   const [name, setName] = useState('');
   const [kcal, setKcal] = useState('');
-  const [date, setDate] = useState<Date>(new Date());     // 目前選定日期（真的生效的）
-  const [showPicker, setShowPicker] = useState(false);     // 控制 Modal 顯示
-  const [tempDate, setTempDate] = useState<Date>(new Date()); // Modal 內暫存日期
+  const [date, setDate] = useState<Date>(new Date());
+  const [showPicker, setShowPicker] = useState(false);
+  const [tempDate, setTempDate] = useState<Date>(new Date());
 
-  // 依選定日期過濾 & 計算合計
   const dateStr = useMemo(() => ymd(date), [date]);
   const itemsOfDay = useMemo(() => items.filter(it => it.date === dateStr), [items, dateStr]);
   const total = useMemo(() => itemsOfDay.reduce((s, it) => s + it.kcal, 0), [itemsOfDay]);
 
-  // 開啟 picker（先帶入目前日期）
   const openPicker = () => {
     setTempDate(date);
     setShowPicker(true);
   };
 
-  // Modal 內的 DatePicker 只更新暫存，不關閉
   const onChangeTemp = (event: DateTimePickerEvent, selected?: Date) => {
     if (selected) setTempDate(selected);
   };
@@ -121,8 +118,6 @@ export default function Calories() {
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 onChange={onChangeTemp}
-                // 可選：限制未來日期
-                // maximumDate={new Date()}
               />
             </View>
           </View>

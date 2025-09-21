@@ -6,9 +6,6 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { router } from 'expo-router';
 import { useCalorieStore } from '../store/caloriesStore';
-// ✅ 改用 Expo 公開環境變數，避免 @env 類型錯誤
-//    在專案根目錄建立 .env，寫入：EXPO_PUBLIC_GOOGLE_AI_API_KEY=你的金鑰
-//    之後以 process.env.EXPO_PUBLIC_GOOGLE_AI_API_KEY 取得（不需安裝 react-native-dotenv）
 
 export default function Camera() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -16,7 +13,6 @@ export default function Camera() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // 還在讀取權限物件
   if (!permission) {
     return (
       <View style={styles.center}>
@@ -25,7 +21,6 @@ export default function Camera() {
     );
   }
 
-  // 尚未授權
   if (!permission.granted) {
     return (
       <View style={styles.center}>
@@ -35,7 +30,6 @@ export default function Camera() {
     );
   }
 
-  // iOS 模擬器沒有鏡頭，但我們仍然提供「相簿選圖」
   const isSimulator = Platform.OS === 'ios' && !Device.isDevice;
 
   const takePicture = async () => {
@@ -47,7 +41,7 @@ export default function Camera() {
   const pickFromLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('需要相簿權限', '請到設定允許存取相簿');
+      Alert.alert('Photo album access is required.', 'Go to Settings to allow access to the photo album.');
       return;
     }
     const r = await ImagePicker.launchImageLibraryAsync({ quality: 0.8 });
@@ -67,8 +61,6 @@ export default function Camera() {
         throw new Error('Missing EXPO_PUBLIC_GOOGLE_AI_API_KEY');
       }
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-
-      //const prompt = `你是營養助理。辨識餐點，估計每一項的熱量(kcal)與可用的份量(克)，若不確定請給合理估計與信心度。只輸出 JSON：{"items":[{"name":"","kcal":0,"qty_g":0,"confidence":0.0}]}`;
 
       const prompt = `You are a nutrition assistant. Based on the provided image, identify each distinct dish or beverage and provide:
                     1. name (in English)
@@ -102,9 +94,8 @@ export default function Camera() {
       const data = await resp.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
       let parsed: any = {};
-      try { parsed = JSON.parse(text); } catch { throw new Error('模型回覆非 JSON：' + text?.slice(0,120)); }
+      try { parsed = JSON.parse(text); } catch { throw new Error('Model response is not valid JSON: ' + text?.slice(0,120)); }
 
-      // 將 AI 結果寫入全域的卡路里 store，然後跳到 Calories 分頁
       const entries = (parsed.items || []).map((it: any) => ({
         id: Math.random().toString(36).slice(2),
         name: String(it.name ?? 'Unknown'),
@@ -121,7 +112,7 @@ export default function Camera() {
       );
       router.push('/(tabs)/calories');
     } catch (e: any) {
-      Alert.alert('送出失敗', e?.message ?? 'unknown');
+      Alert.alert('Submission failed', e?.message ?? 'unknown');
     } finally {
       setSubmitting(false);
     }
@@ -141,7 +132,6 @@ export default function Camera() {
       ) : isSimulator ? (
         <View style={styles.center}>
           <Text style={{ textAlign: 'center', marginBottom: 12 }}>
-            iOS 模擬器不支援相機預覽。你可以先用相簿挑選照片來測流程。
           </Text>
           <Button title="Choose from Library" onPress={pickFromLibrary} />
         </View>
